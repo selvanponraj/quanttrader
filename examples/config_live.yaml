@@ -14,14 +14,28 @@ strategy:
   #   symbols:
   #   - NGZ0 FUT NYMEX
   #---------- Strategy and params control -----------#
+  SuperTrendStrategy:
+    active: false
+    capital: 10000
+    params:
+      start_time: '06:01:00'
+      end_time: '11:59:59'
+      bar_start_time: '06:01:00'
+      bar_end_time: '11:59:59'
+      # lookback_1min: 12
+      lookback_5sec: 50
+      lookback_60sec: 1
+    symbols:
+    - ESM1 FUT GLOBEX
+  #---------- Strategy and params control -----------#
   DualTimeFrameStrategy:
     active: false
     capital: 10000
     params:
-      start_time: '09:30:00'
-      end_time: '16:14:58'
-      bar_start_time: '09:00:00'
-      bar_end_time: '16:15:00'
+      start_time: '14:30:00'
+      end_time: '21:14:58'
+      bar_start_time: '14:00:00'
+      bar_end_time: '21:15:00'
       lookback_5sec: 50
       lookback_15sec: 20
     symbols:
@@ -69,4 +83,4 @@ strategy:
 total_active_limit: 3
 total_cancel_limit: 10
 total_loss_limit: 10000
-total_trade_limit: 20
+total_trade_limit:  

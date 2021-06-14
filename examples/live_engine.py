@@ -43,7 +43,7 @@ def main(config_file, instrument_meta_file):
             os.makedirs(d)
 
     _logger = logging.getLogger('quanttrader')
-    _logger.setLevel(logging.DEBUG)
+    _logger.setLevel(logging.ERROR)
     handler1 = logging.StreamHandler()
     handler2 = logging.FileHandler(f"./log/{today}.log")
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -53,12 +53,12 @@ def main(config_file, instrument_meta_file):
     _logger.addHandler(handler2)
 
     _logger2 = logging.getLogger('qtlive')
-    _logger2.setLevel(logging.DEBUG)
+    _logger2.setLevel(logging.INFO)
     _logger2.addHandler(handler1)
     _logger2.addHandler(handler2)
 
     _logger3 = logging.getLogger('tick_recorder')
-    _logger3.setLevel(logging.INFO)
+    _logger3.setLevel(logging.ERROR)
     handler3 = logging.FileHandler(f"./tick/{today}.txt")
     formatter = logging.Formatter('')
     handler3.setFormatter(formatter)
