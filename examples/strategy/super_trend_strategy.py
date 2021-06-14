@@ -85,7 +85,7 @@ class SuperTrendStrategy(StrategyBase):
             barSizeSetting=barSizeSetting,
             # whatToShow='ADJUSTED_LAST',
             whatToShow=whatToShow,
-            useRTH=False,
+            useRTH=True,
             formatDate=1,
             keepUpToDate=True,
         )
@@ -94,7 +94,7 @@ class SuperTrendStrategy(StrategyBase):
         df=df.loc[mask].set_index('date')
         df.columns=['Open', 'High', 'Low', 'Close', 'Volume']
         df.rename_axis(None, inplace=True)
-        self.df_60sec_bar = self.df_60sec_bar.join(df, lsuffix="DROP").filter(regex="^(?!.*DROP)")
+        self.df_60sec_bar = self.df_60sec_bar.join(df, lsuffix="DROP").filter(regex="^(?!.*DROP)").fillna(0)
         print(self.df_60sec_bar.head(5))
         print(self.df_60sec_bar.tail(5))
         self.midx_5sec = len(idx_5sec) - 1            # max idx
@@ -188,6 +188,7 @@ class SuperTrendStrategy(StrategyBase):
                 self.supertrend(df,11,2,3)
                 print(df.loc[:, df.columns.isin(['Close', 'Volume','tr','atr1','upperband1','in_uptrend1','atr2','in_uptrend2','atr3','in_uptrend3'])].tail(5))
                 # print (df.tail(5))
+                self.super_trend_rule(df,k.timestamp)
             else:
                 _logger.info(f'SuperTrendStrategy wait for enough bars, { self.nbars_60sec } / { self.lookback_60sec }')
         else:  # same bar
@@ -238,26 +239,34 @@ class SuperTrendStrategy(StrategyBase):
             
         return df
 
-    def dual_time_frame_rule(self, t):
-        if self.sma_5sec > self.sma_60sec:
+    def super_trend_rule(self, df,t):
+        last_row_index = len(df.index) - 1
+        previous_row_index = last_row_index - 1
+
+        if df['in_uptrend1'][last_row_index] and df['in_uptrend2'][last_row_index] and df['in_uptrend3'][last_row_index]:            
+            print("changed to uptrend, buy")
             if self.current_pos <= 0:
                 o = OrderEvent()
                 o.full_symbol = self.symbols[0]
                 o.order_type = OrderType.MARKET
                 o.order_size = 1 - self.current_pos
-                _logger.info(f'DualTimeFrameStrategy long order placed, on tick time {t}, current size {self.current_pos}, order size {o.order_size}, ma_fast {self.sma_5sec}, ma_slow {self.sma_60sec}')
+                _logger.info(f'SuperTredStrategy long order placed, on tick time {t}, current size {self.current_pos}, order size {o.order_size}')
+                print(f'SuperTredStrategy long order placed, on tick time {t}, current size {self.current_pos}, order size {o.order_size}')
                 self.current_pos = 1
                 self.place_order(o)
             else:
-                _logger.info(f'DualTimeFrameStrategy keeps long, on tick time {t}, current size {self.current_pos}, ma_fast {self.sma_5sec}, ma_slow {self.sma_60sec}')
-        elif self.sma_5sec < self.sma_60sec:
+                print(f'SuperTredStrategy keeps long, on tick time {t}, current size {self.current_pos}')
+ 
+        elif  (not df['in_uptrend1'][last_row_index] and not df['in_uptrend2'][last_row_index] and not df['in_uptrend3'][last_row_index] ):
+            print("changed to downtred, sell", self.current_pos)
             if self.current_pos >= 0:
                 o = OrderEvent()
                 o.full_symbol = self.symbols[0]
                 o.order_type = OrderType.MARKET
                 o.order_size = -1 - self.current_pos
-                _logger.info(f'DualTimeFrameStrategy short order placed, on tick time {t}, current size {self.current_pos}, order size {o.order_size}, ma_fast {self.sma_5sec}, ma_slow {self.sma_60sec}')
+                _logger.info(f'SuperTredStrategy short order placed, on tick time {t}, current size {self.current_pos}, order size {o.order_size}')
+                print(f'SuperTredStrategy short order placed, on tick time {t}, current size {self.current_pos}, order size {o.order_size}')
                 self.current_pos = -1
                 self.place_order(o)
             else:
-                _logger.info(f'DualTimeFrameStrategy keeps short, on tick time {t}, current size {self.current_pos}, ma_fast {self.sma_5sec}, ma_slow {self.sma_60sec}')
+                print(f'SuperTredStrategy keeps short, on tick time {t}, current size {self.current_pos}')
